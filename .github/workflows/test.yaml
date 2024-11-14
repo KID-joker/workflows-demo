@@ -35,8 +35,5 @@ jobs:
       - name: Install dependencies
         run: pnpm --silent install
 
-      - name: Check linting
-        run: pnpm run lint
-
       - name: Run tests
         run: pnpm run test

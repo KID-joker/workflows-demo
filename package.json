@@ -2,7 +2,6 @@
   "name": "workflows-demo",
   "type": "module",
   "version": "0.0.0",
-  "packageManager": "pnpm@9.9.0",
   "description": "github workflows demo",
   "author": "KID-joker <kid_joker@126.com>",
   "license": "MIT",
@@ -47,15 +46,14 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.3.2",
+    "@antfu/eslint-config": "2.9.0",
     "@antfu/ni": "^0.23.0",
     "@antfu/utils": "^0.7.10",
     "@types/node": "^22.5.4",
     "bumpp": "^9.5.2",
-    "eslint": "^9.9.1",
+    "eslint": "^8.57.1",
     "esno": "^4.7.0",
     "lint-staged": "^15.2.10",
-    "pnpm": "^9.9.0",
     "simple-git-hooks": "^2.11.1",
     "typescript": "^5.5.4",
     "unbuild": "^2.0.0",
@@ -63,7 +61,7 @@
     "vitest": "^2.0.5"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged"
+    "pre-commit": "npx lint-staged"
   },
   "lint-staged": {
     "*": "eslint --fix"

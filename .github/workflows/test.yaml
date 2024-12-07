@@ -1,7 +1,5 @@
 # This workflow will do a clean install of node dependencies, check the linting and run tests across different versions of node.
 
-name: Automated Tests
-
 on:
   push:
     branches: [main, develop]
@@ -14,6 +12,7 @@ permissions:
 
 jobs:
   test:
+    name: Automated Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:

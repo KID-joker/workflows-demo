@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-        - name: Get version from package.json
+      - name: Get version from package.json
         id: get_version
         run: |
           VERSION=$(node -p "require('./package.json').version")

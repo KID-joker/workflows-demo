@@ -35,8 +35,7 @@
     "dist"
   ],
   "scripts": {
-    "prepublishOnly": "nr build",
-    "release": "bumpp && npm publish",
+    "build": "nr build",
     "start": "tsx src/index.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit"

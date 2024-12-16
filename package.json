@@ -35,7 +35,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "nr build",
+    "build": "unbuild",
     "start": "tsx src/index.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
@@ -47,6 +47,7 @@
     "bumpp": "^9.5.2",
     "tsx": "^3.14.0",
     "typescript": "^5.5.4",
+    "unbuild": "^3.0.1",
     "vitest": "^2.1.8"
   }
 }

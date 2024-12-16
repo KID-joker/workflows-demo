@@ -30,9 +30,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Get version from package.json
+        - name: Get version from package.json
         id: get_version
-        run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create Git Tag
         run: |

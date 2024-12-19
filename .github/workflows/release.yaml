@@ -1,4 +1,8 @@
-name: Release Workflow
+name: Release
+
+permissions:
+  id-token: write
+  contents: write
 
 on:
   push:
@@ -7,29 +11,18 @@ on:
 
 jobs:
   release:
-    name: Release and Publish
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      matrix:
-        node-version: [18]
-
-    permissions:
-      contents: write
-      pull-requests: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          check-latest: true
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
         run: pnpm install
@@ -51,6 +44,7 @@ jobs:
         run: pnpm run build
 
       - name: Publish to npm
-        run: npm publish --force
+        run: pnpm publish -r --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

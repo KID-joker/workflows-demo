@@ -1,7 +1,7 @@
 {
   "name": "workflows-demo",
   "type": "module",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "github workflows demo",
   "author": "KID-joker <kid_joker@126.com>",
   "license": "MIT",

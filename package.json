@@ -38,7 +38,8 @@
     "build": "unbuild",
     "start": "tsx src/index.ts",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev": "pnpm start"
   },
   "devDependencies": {
     "@antfu/ni": "^0.23.0",

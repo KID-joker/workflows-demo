@@ -54,6 +54,10 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: pnpm build
 
+      - name: Verify npm auth
+        if: steps.check.outputs.exists == 'false'
+        run: npm whoami
+
       - name: Publish to npm
         if: steps.check.outputs.exists == 'false'
         env:

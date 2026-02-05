@@ -7,13 +7,30 @@ permissions:
 on:
   push:
     branches:
-      - release
+      - main
+    paths:
+      - package.json
 
 jobs:
-  release:
+  check-version:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
+      - id: diff
+        run: |
+          OLD=$(git show HEAD~1:package.json | node -p "JSON.parse(fs.readFileSync(0)).version")
+          NEW=$(node -p "require('./package.json').version")
+          echo "changed=$([ "$OLD" != "$NEW" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  publish:
+    needs: check-version
+    if: needs.check-version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,27 +43,41 @@ jobs:
           node-version: lts/*
           registry-url: https://registry.npmjs.org/
 
+      - name: Read package name & version
+        id: pkg
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if version exists on npm
+        id: check
+        run: |
+          if npm view ${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }} version >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install dependencies
+        if: steps.check.outputs.exists == 'false'
         run: pnpm install
 
       - name: Build the project
-        run: pnpm run build
+        if: steps.check.outputs.exists == 'false'
+        run: pnpm build
 
       - name: Publish to npm
-        run: pnpm publish -r --access public --publish-branch release
+        if: steps.check.outputs.exists == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-
-      - name: Get version from package.json
-        id: get_version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        run: npm publish
 
       - name: Create Git Tag
+        if: steps.check.outputs.exists == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${VERSION}" -m "Release v${VERSION}"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KID-joker/workflows-demo.git "v${VERSION}"
+          git tag -a "v${{ steps.package.outputs.version }}" -m "Release v${{ steps.package.outputs.version }}"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KID-joker/workflows-demo.git "v${{ steps.package.outputs.version }}"

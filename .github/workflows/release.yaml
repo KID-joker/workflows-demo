@@ -60,6 +60,13 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Configure npm auth
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Install dependencies
         if: steps.check.outputs.exists == 'false'
         run: pnpm install
@@ -72,7 +79,7 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
+        run: pnpm publish --access public --no-git-checks
 
       - name: Create Git Tag
         if: steps.check.outputs.exists == 'false'

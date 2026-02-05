@@ -5,31 +5,10 @@ permissions:
   contents: write
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - package.json
+  workflow_dispatch:
 
 jobs:
-  check-version:
-    runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.diff.outputs.changed }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - id: diff
-        run: |
-          OLD=$(git show HEAD~1:package.json | node -p "JSON.parse(fs.readFileSync(0)).version")
-          NEW=$(node -p "require('./package.json').version")
-          echo "changed=$([ "$OLD" != "$NEW" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
   publish:
-    needs: check-version
-    if: needs.check-version.outputs.changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

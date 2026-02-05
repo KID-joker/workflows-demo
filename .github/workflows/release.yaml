@@ -54,6 +54,25 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: pnpm build
 
+      - name: Setup npm auth (hard isolate)
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          rm -f ~/.npmrc
+          rm -f .npmrc
+
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > $RUNNER_TEMP/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> $RUNNER_TEMP/.npmrc
+
+          echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/.npmrc" >> $GITHUB_ENV
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Debug npm config
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          echo "userconfig=$NPM_CONFIG_USERCONFIG"
+          npm config list
+
       - name: Verify npm auth
         if: steps.check.outputs.exists == 'false'
         run: npm whoami

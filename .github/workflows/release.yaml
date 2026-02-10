@@ -1,92 +1,61 @@
 name: Release
 
-permissions:
-  id-token: write
-  contents: write
-
 on:
   workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type"
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
+
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.0
+          version: latest
+
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
           registry-url: https://registry.npmjs.org/
 
-      - name: Read package name & version
-        id: pkg
-        run: |
-          NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Check if version exists on npm
-        id: check
-        run: |
-          if npm view ${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }} version >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Configure npm auth
-        if: steps.check.outputs.exists == 'false'
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Install dependencies
-        if: steps.check.outputs.exists == 'false'
-        run: pnpm install
+        run: pnpm Install
 
       - name: Build the project
-        if: steps.check.outputs.exists == 'false'
         run: pnpm build
 
-      - name: Setup npm auth (hard isolate)
-        if: steps.check.outputs.exists == 'false'
+      - name: Bump version
         run: |
-          rm -f ~/.npmrc
-          rm -f .npmrc
+          pnpm version ${{ inputs.release_type }} --no-git-tag-version
 
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > $RUNNER_TEMP/.npmrc
-          echo "registry=https://registry.npmjs.org/" >> $RUNNER_TEMP/.npmrc
-
-          echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/.npmrc" >> $GITHUB_ENV
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Debug npm config
-        if: steps.check.outputs.exists == 'false'
-        run: |
-          echo "userconfig=$NPM_CONFIG_USERCONFIG"
-          npm config list
-
-      - name: Verify npm auth
-        if: steps.check.outputs.exists == 'false'
-        run: npm whoami
-
-      - name: Publish to npm
-        if: steps.check.outputs.exists == 'false'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public --no-git-checks
-
-      - name: Create Git Tag
-        if: steps.check.outputs.exists == 'false'
+      - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ steps.package.outputs.version }}" -m "Release v${{ steps.package.outputs.version }}"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/KID-joker/workflows-demo.git "v${{ steps.package.outputs.version }}"
+
+          git add package.json package-lock.json
+          git commit -m "chore(release): bump version (${{ inputs.release_type }})"
+          git push origin main
+
+      - name: Publish to npm
+        run: pnpm publish -r --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

@@ -1,5 +1,9 @@
 name: Release
 
+permissions:
+  id-token: write
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -13,24 +17,19 @@ on:
           - minor
           - major
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-
       - uses: pnpm/action-setup@v4
         with:
           version: latest
-
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -44,7 +43,9 @@ jobs:
 
       - name: Bump version
         run: |
-          pnpm version ${{ inputs.release_type }} --no-git-tag-version
+          VERSION=$(pnpm version ${{ inputs.release_type }} --no-git-tag-version)
+          echo "New version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Commit version bump
         run: |
@@ -54,6 +55,11 @@ jobs:
           git add package.json
           git commit -m "chore(release): bump version (${{ inputs.release_type }})"
           git push origin main
+      
+      - name: Create Git tag
+        run: |
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
 
       - name: Publish to npm
         run: npm publish --provenance

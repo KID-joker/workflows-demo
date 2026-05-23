@@ -65,7 +65,7 @@ jobs:
 
       - name: Merge Pull Request
         if: steps.pr.outputs.pull-request-number
-        run: gh pr merge ${{ steps.pr.outputs.pull-request-number }} --merge --admin
+        run: gh pr merge ${{ steps.pr.outputs.pull-request-number }} --squash --admin
         env:
           GH_TOKEN: ${{ github.token }}
 

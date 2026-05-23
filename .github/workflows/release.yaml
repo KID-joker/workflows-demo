@@ -53,31 +53,11 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create Pull Request
-        id: pr
         uses: peter-evans/create-pull-request@v7
         with:
           branch: bump/${{ env.VERSION }}
           title: "chore(release): bump version to ${{ env.VERSION }}"
-          body: "Automated version bump (${{ inputs.release_type }})"
+          body: "Automated version bump (${{ inputs.release_type }}). Merge this PR to trigger the publish workflow."
           commit-message: "chore(release): bump version (${{ inputs.release_type }})"
           base: main
           delete-branch: true
-
-      - name: Merge Pull Request
-        if: steps.pr.outputs.pull-request-number
-        run: gh pr merge ${{ steps.pr.outputs.pull-request-number }} --squash --admin
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Create Git tag
-        run: |
-          git tag -a "$VERSION" -m "Release ${{ env.VERSION }}"
-          git push origin "$VERSION"
-
-      - name: Publish to npm
-        run: npm publish --provenance

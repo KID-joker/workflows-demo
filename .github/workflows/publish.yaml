@@ -1,0 +1,50 @@
+name: Publish
+
+permissions:
+  id-token: write
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install
+        env:
+          PNPM_CONFIG_IGNORE_SCRIPTS: false
+
+      - name: Build the project
+        run: pnpm build
+
+      - name: Create Git tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Publish to npm
+        run: npm publish --provenance

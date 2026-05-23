@@ -61,7 +61,7 @@ jobs:
       
       - name: Create Git tag
         run: |
-          git tag -a "$VERSION" -m "Release $VERSION"
+          git tag -a "$VERSION" -m "Release ${{ env.VERSION }}"
           git push origin "$VERSION"
 
       - name: Publish to npm

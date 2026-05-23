@@ -37,7 +37,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --only-built-dependencies=""
 
       - name: Build the project
         run: pnpm build

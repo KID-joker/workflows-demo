@@ -37,7 +37,9 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: pnpm install --only-built-dependencies=""
+        run: pnpm install
+        env:
+          PNPM_CONFIG_IGNORE_SCRIPTS: false
 
       - name: Build the project
         run: pnpm build

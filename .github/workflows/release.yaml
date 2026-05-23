@@ -56,7 +56,7 @@ jobs:
         id: pr
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: release/${{ env.VERSION }}
+          branch: bump/${{ env.VERSION }}
           title: "chore(release): bump version to ${{ env.VERSION }}"
           body: "Automated version bump (${{ inputs.release_type }})"
           commit-message: "chore(release): bump version (${{ inputs.release_type }})"
